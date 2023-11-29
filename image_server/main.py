@@ -1,12 +1,14 @@
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, HTMLResponse
 import os
 from typing import List, Dict
+from fastapi.templating import Jinja2Templates
 
 app = FastAPI()
 
 BASE_DIRECTORY = "/path/to/base/directory"  # 基本ディレクトリを設定
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".bmp"}  # 画像ファイルの拡張子
+templates = Jinja2Templates(directory="templates")  # テンプレートディレクトリの設定
 
 
 def is_safe_path(base_directory: str, subdirectory: str) -> bool:
@@ -40,9 +42,8 @@ def list_files_and_dirs(subdirectory: str) -> Dict[str, List[str]]:
 def is_image_file(filename: str) -> bool:
     return os.path.splitext(filename)[1].lower() in IMAGE_EXTENSIONS
 
-
-@app.get("/files/{path:path}")
-async def read_images_or_download(path: str):
+@app.get("/files/{path:path}", response_class=HTMLResponse)
+async def read_files_or_download(request: Request, path: str):
     if not is_safe_path(BASE_DIRECTORY, path):
         raise HTTPException(status_code=400, detail="Invalid path")
 
@@ -62,7 +63,13 @@ async def read_images_or_download(path: str):
                 file_list.append(os.path.relpath(item_path, BASE_DIRECTORY))
             elif os.path.isdir(item_path):
                 dir_list.append(os.path.relpath(item_path, BASE_DIRECTORY))
-        return {"files": file_list, "dirs": dir_list}
 
+        # HTMLテンプレートをレンダリングしてレスポンスを返す
+        return templates.TemplateResponse("file_list.html", {
+            "request": request,
+            "files": file_list,
+            "dirs": dir_list,
+            "path": path
+        })
     else:
         raise HTTPException(status_code=404, detail="Path not found")

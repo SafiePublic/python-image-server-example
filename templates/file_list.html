@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Files in {{ path }}</title>
+</head>
+<body>
+    <h1>Files in {{ path }}</h1>
+    <ul>
+        {% for file in files %}
+        <li><a href="/files/{{ file }}">{{ file }}</a></li>
+        {% endfor %}
+    </ul>
+    <h2>Directories</h2>
+    <ul>
+        {% for dir in dirs %}
+        <li><a href="/files/{{ dir }}">{{ dir }}</a></li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
