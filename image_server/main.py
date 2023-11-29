@@ -3,6 +3,8 @@ from fastapi.responses import FileResponse, HTMLResponse
 import os
 from typing import List, Dict
 from fastapi.templating import Jinja2Templates
+from PIL import Image
+
 
 app = FastAPI()
 
@@ -13,8 +15,7 @@ templates = Jinja2Templates(directory="templates")  # テンプレートディ�
 
 def is_safe_path(base_directory: str, subdirectory: str) -> bool:
     # 完全なパスを生成
-    full_path = os.path.abspath(os.path.join(base_directory, subdirectory))
-    # パスが基本ディレクトリ内にあるかどうかを確認
+    full_path = os.path.abspath(os.path.join(base_directory, subdirectory))    # パスが基本ディレクトリ内にあるかどうかを確認
     return os.path.commonpath([full_path, base_directory]) == base_directory
 
 
@@ -73,3 +74,17 @@ async def read_files_or_download(request: Request, path: str):
         })
     else:
         raise HTTPException(status_code=404, detail="Path not found")
+
+
+@app.get("/metadata/{filepath:path}")
+async def get_image_metadata(filepath: str):
+    if not is_safe_path(BASE_DIRECTORY, filepath) or not is_image_file(filepath):
+        raise HTTPException(status_code=400, detail="Invalid or non-image file path")
+
+    full_path = os.path.join(BASE_DIRECTORY, filepath)
+    if not os.path.isfile(full_path):
+        raise HTTPException(status_code=404, detail="File not found")
+
+    with Image.open(full_path) as img:
+        metadata = img.info
+        return metadata
