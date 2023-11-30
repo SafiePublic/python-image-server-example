@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 import os
 from typing import List, Dict
 from fastapi.templating import Jinja2Templates
@@ -95,3 +95,8 @@ async def get_image_metadata(filepath: str):
     with Image.open(full_path) as img:
         metadata = img.info
         return metadata
+
+
+@app.get("/")
+def read_root():
+    return RedirectResponse(url="/files")
