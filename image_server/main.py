@@ -8,7 +8,10 @@ from PIL import Image
 
 app = FastAPI()
 
-BASE_DIRECTORY = "/path/to/base/directory"  # 基本ディレクトリを設定
+# 現在のファイルのディレクトリを取得
+current_directory = os.path.dirname(os.path.realpath(__file__))
+parent_directory = os.path.dirname(current_directory)
+BASE_DIRECTORY = os.path.join(parent_directory, 'static')  # 基本ディレクトリを設定
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".bmp"}  # 画像ファイルの拡張子
 templates = Jinja2Templates(directory="templates")  # テンプレートディレクトリの設定
 
@@ -49,7 +52,6 @@ async def read_files_or_download(request: Request, path: str):
         raise HTTPException(status_code=400, detail="Invalid path")
 
     full_path = os.path.join(BASE_DIRECTORY, path)
-
     # パスがファイルで、かつ画像の場合はダウンロード
     if os.path.isfile(full_path) and is_image_file(full_path):
         return FileResponse(full_path)
