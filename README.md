@@ -20,5 +20,5 @@ poetry install
 ## 起動
 
 ```
-poetry run uvicorn image_server.main:app --reload
+poetry run uvicorn image_server.main:app --reload --port 8000
 ```
