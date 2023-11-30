@@ -61,7 +61,14 @@ async def read_files_or_download(request: Request, path: str):
         for item in os.listdir(full_path):
             item_path = os.path.join(full_path, item)
             if os.path.isfile(item_path) and is_image_file(item_path):
-                file_list.append(os.path.relpath(item_path, BASE_DIRECTORY))
+                with Image.open(item_path) as img:
+                    metadata = img.info
+                file_list.append(
+                    {
+                        "filename": os.path.relpath(item_path, BASE_DIRECTORY),
+                        "metadata": metadata,
+                    }
+                )
             elif os.path.isdir(item_path):
                 dir_list.append(os.path.relpath(item_path, BASE_DIRECTORY))
 
@@ -78,8 +85,7 @@ async def read_files_or_download(request: Request, path: str):
 
 @app.get("/metadata/{filepath:path}")
 async def get_image_metadata(filepath: str):
-    if not is_safe_path(BASE_DIRECTORY, filepath) or not is_image_file(filepath):
-        raise HTTPException(status_code=400, detail="Invalid or non-image file path")
+    if not is_safe_path(BASE_DIRECTORY, filepath) or not is_image_file(filepath):        raise HTTPException(status_code=400, detail="Invalid or non-image file path")
 
     full_path = os.path.join(BASE_DIRECTORY, filepath)
     if not os.path.isfile(full_path):
