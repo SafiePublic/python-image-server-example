@@ -11,21 +11,20 @@ app = FastAPI()
 # 現在のファイルのディレクトリを取得
 current_directory = os.path.dirname(os.path.realpath(__file__))
 parent_directory = os.path.dirname(current_directory)
-BASE_DIRECTORY = os.path.join(parent_directory, 'static')  # 基本ディレクトリを設定
+BASE_DIRECTORY = os.path.join(parent_directory, "static")  # 基本ディレクトリを設定
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".bmp"}  # 画像ファイルの拡張子
 templates = Jinja2Templates(directory="templates")  # テンプレートディレクトリの設定
 
 
 def is_safe_path(base_directory: str, subdirectory: str) -> bool:
     # 完全なパスを生成
-    full_path = os.path.abspath(os.path.join(base_directory, subdirectory))    # パスが基本ディレクトリ内にあるかどうかを確認
+    full_path = os.path.abspath(os.path.join(base_directory, subdirectory))  # パスが基本ディレクトリ内にあるかどうかを確認
     return os.path.commonpath([full_path, base_directory]) == base_directory
 
 
 def list_files_and_dirs(subdirectory: str) -> Dict[str, List[str]]:
     if not is_safe_path(BASE_DIRECTORY, subdirectory):
         raise HTTPException(status_code=400, detail="Invalid subdirectory path")
-
     directory = os.path.join(BASE_DIRECTORY, subdirectory)
     file_list = []
     dir_list = []
@@ -39,12 +38,13 @@ def list_files_and_dirs(subdirectory: str) -> Dict[str, List[str]]:
             relative_path = os.path.relpath(full_path, BASE_DIRECTORY)
             dir_list.append(relative_path)
         # 一度の反復でディレクトリをリストに追加したら、それ以上サブディレクトリを探索しない
-        break 
+        break
     return {"files": file_list, "dirs": dir_list}
 
 
 def is_image_file(filename: str) -> bool:
     return os.path.splitext(filename)[1].lower() in IMAGE_EXTENSIONS
+
 
 @app.get("/files/{path:path}", response_class=HTMLResponse)
 async def read_files_or_download(request: Request, path: str):
@@ -52,6 +52,7 @@ async def read_files_or_download(request: Request, path: str):
         raise HTTPException(status_code=400, detail="Invalid path")
 
     full_path = os.path.join(BASE_DIRECTORY, path)
+
     # パスがファイルで、かつ画像の場合はダウンロード
     if os.path.isfile(full_path) and is_image_file(full_path):
         return FileResponse(full_path)
@@ -75,19 +76,17 @@ async def read_files_or_download(request: Request, path: str):
                 dir_list.append(os.path.relpath(item_path, BASE_DIRECTORY))
 
         # HTMLテンプレートをレンダリングしてレスポンスを返す
-        return templates.TemplateResponse("file_list.html", {
-            "request": request,
-            "files": file_list,
-            "dirs": dir_list,
-            "path": path
-        })
+        return templates.TemplateResponse(
+            "file_list.html", {"request": request, "files": file_list, "dirs": dir_list, "path": path}
+        )
     else:
         raise HTTPException(status_code=404, detail="Path not found")
 
 
 @app.get("/metadata/{filepath:path}")
 async def get_image_metadata(filepath: str):
-    if not is_safe_path(BASE_DIRECTORY, filepath) or not is_image_file(filepath):        raise HTTPException(status_code=400, detail="Invalid or non-image file path")
+    if not is_safe_path(BASE_DIRECTORY, filepath) or not is_image_file(filepath):
+        raise HTTPException(status_code=400, detail="Invalid or non-image file path")
 
     full_path = os.path.join(BASE_DIRECTORY, filepath)
     if not os.path.isfile(full_path):
