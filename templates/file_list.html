@@ -1,15 +1,35 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Files in {{ path }}</title>
+    <style type="text/css">
+        .image-grid {
+            display: grid;
+            /* 3列のグリッドを作成 */
+            grid-template-columns: repeat(3, 1fr);
+            /* グリッドアイテム間の隙間 */
+            grid-gap: 10px;
+        }
+
+        .image-grid img {
+            /* 画像をグリッドセルに合わせる */
+            width: 100%;
+            /* 画像の縦横比を維持 */
+            height: auto;
+        }
+    </style>
 </head>
+
 <body>
     <h1>Files in {{ path }}</h1>
-    <ul>
+    <div class="image-grid">
         {% for file in files %}
-        <li><a href="/files/{{ file }}">{{ file }}</a></li>
+        <a href="/files/{{ file }}">
+            <img src="/files/{{ file }}" alt="画像1">
+        </a>
         {% endfor %}
-    </ul>
+    </div>
     <h2>Directories</h2>
     <ul>
         {% for dir in dirs %}
@@ -17,4 +37,5 @@
         {% endfor %}
     </ul>
 </body>
+
 </html>
